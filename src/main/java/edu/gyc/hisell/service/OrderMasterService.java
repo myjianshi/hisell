@@ -1,5 +1,6 @@
 package edu.gyc.hisell.service;
 
+import edu.gyc.hisell.dto.OrderDTO;
 import edu.gyc.hisell.model.OrderMaster;
 import com.baomidou.mybatisplus.extension.service.IService;
 
@@ -13,4 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  */
 public interface OrderMasterService extends IService<OrderMaster> {
 
+    public OrderDTO create(OrderDTO orderDTO);
 }

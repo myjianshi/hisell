@@ -1,8 +1,11 @@
 package edu.gyc.hisell.model;
 
+import lombok.Data;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * <p>
@@ -12,6 +15,8 @@ import java.io.Serializable;
  * @author ls
  * @since 2019-11-06
  */
+
+@Data
 public class OrderMaster implements Serializable {
 
     private static final long serialVersionUID=1L;
@@ -45,6 +50,7 @@ public class OrderMaster implements Serializable {
 
     /**
      * 订单状态, 默认为新下单
+     *
      */
     private Integer orderStatus;
 
@@ -143,6 +149,8 @@ public class OrderMaster implements Serializable {
     public void setUpdateTime(LocalDateTime updateTime) {
         this.updateTime = updateTime;
     }
+
+    private transient List<OrderDetail> orderDetails;
 
     @Override
     public String toString() {

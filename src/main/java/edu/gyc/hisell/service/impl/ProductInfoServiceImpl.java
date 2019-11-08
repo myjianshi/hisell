@@ -1,13 +1,16 @@
 package edu.gyc.hisell.service.impl;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import edu.gyc.hisell.enums.ProductStatusEnum;
-import edu.gyc.hisell.model.ProductInfo;
 import edu.gyc.hisell.dao.ProductInfoDao;
+import edu.gyc.hisell.dto.CartDTO;
+import edu.gyc.hisell.enums.ProductStatusEnum;
+import edu.gyc.hisell.enums.ResultEnum;
+import edu.gyc.hisell.exception.SellException;
+import edu.gyc.hisell.model.ProductInfo;
 import edu.gyc.hisell.service.ProductInfoService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -35,5 +38,41 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoDao, ProductI
         List<ProductInfo> productInfos = this.list();
         PageInfo<ProductInfo> data = new PageInfo<>(productInfos);
         return data;
+    }
+
+    @Override
+    public ProductInfo findOne(String id) {
+        return getOne(Wrappers.<ProductInfo>lambdaQuery().eq(ProductInfo::getProductId, id));
+    }
+
+    @Override
+    public void increaseStock(List<CartDTO> cartDTOList) {
+
+    }
+
+    @Override
+    public void decreaseStock(List<CartDTO> cartDTOList) {
+        for (CartDTO cartDTO : cartDTOList) {
+            ProductInfo productInfo = findOne(cartDTO.getProductId());
+            Integer n=productInfo.getProductStock()-cartDTO.getProductQuantity();
+
+            if (n < 0) {
+                throw new SellException(ResultEnum.PRODUCT_STOCK_ERROR);
+            }
+
+            productInfo.setProductStock(n);
+
+            saveOrUpdate(productInfo, Wrappers.<ProductInfo>lambdaQuery().eq(ProductInfo::getProductId, productInfo.getProductId()));
+        }
+    }
+
+    @Override
+    public ProductInfo onSale(String productId) {
+        return null;
+    }
+
+    @Override
+    public ProductInfo offSale(String productId) {
+        return null;
     }
 }
