@@ -11,6 +11,7 @@ import edu.gyc.hisell.enums.ResultEnum;
 import edu.gyc.hisell.exception.SellException;
 import edu.gyc.hisell.model.ProductInfo;
 import edu.gyc.hisell.service.ProductInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.List;
  * @since 2019-11-06
  */
 @Service
+@Slf4j
 public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoDao, ProductInfo> implements ProductInfoService {
 
     @Override
@@ -47,7 +49,22 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoDao, ProductI
 
     @Override
     public void increaseStock(List<CartDTO> cartDTOList) {
+        for (CartDTO cartDTO : cartDTOList) {
+            ProductInfo productInfo = findOne(cartDTO.getProductId());
+            Integer n=productInfo.getProductStock()+cartDTO.getProductQuantity();
 
+
+
+            productInfo.setProductStock(n);
+
+           // saveOrUpdate(productInfo, Wrappers.<ProductInfo>lambdaQuery().eq(ProductInfo::getProductId, productInfo.getProductId()));
+
+            boolean result  = lambdaUpdate().set(ProductInfo::getProductStock,n).eq(ProductInfo::getProductId,productInfo.getProductId())
+                         .update();
+            log.info("increase stock : "+result);
+
+
+        }
     }
 
     @Override
