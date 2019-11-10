@@ -1,6 +1,9 @@
 package edu.gyc.hisell.service.impl;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.github.pagehelper.PageHelper;
+import com.github.pagehelper.PageInfo;
 import edu.gyc.hisell.dao.OrderMasterDao;
 import edu.gyc.hisell.dao.ProductInfoDao;
 import edu.gyc.hisell.dto.CartDTO;
@@ -19,6 +22,7 @@ import edu.gyc.hisell.utils.KeyUtil;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -90,5 +94,82 @@ public class OrderMasterServiceImpl extends ServiceImpl<OrderMasterDao, OrderMas
         productInfoService.decreaseStock(cartDTOList);
 
         return orderDTO;
+    }
+
+    @Override
+    public OrderDTO findOne(String orderId) {
+
+        OrderMaster orderMaster = this.getOne(Wrappers.<OrderMaster>lambdaQuery().eq(OrderMaster::getOrderId, orderId));
+        if (orderMaster == null) {
+            throw new SellException(ResultEnum.ORDER_NOT_EXIST);
+        }
+        List<OrderDetail> orderDetailList = orderDetailService.findOrderDetailsByOrderId(orderId);
+        if (CollectionUtils.isEmpty(orderDetailList)) {
+            throw new SellException(ResultEnum.ORDER_DETAIL_EMPTY);
+        }
+       OrderDTO orderDTO=new OrderDTO();
+        BeanUtils.copyProperties(orderMaster, orderDTO);
+        orderDTO.setOrderDetailList(orderDetailList);
+        return orderDTO;
+    }
+
+    @Override
+    public PageInfo<OrderDTO> findList(String buyerOpenid, int start, int size) {
+        PageHelper.startPage(start, size);
+        List<OrderMaster> orderMasterList=orderMasterService.list(Wrappers.<OrderMaster>lambdaQuery().eq(OrderMaster::getBuyerOpenid,buyerOpenid));
+        List<OrderDTO> orderDTOList = new ArrayList<>();
+        for (OrderMaster orderMaster : orderMasterList) {
+            OrderDTO orderDTO=new OrderDTO();
+            BeanUtils.copyProperties(orderMaster,orderDTO);
+            orderDTOList.add(orderDTO);
+        }
+        PageInfo<OrderDTO> data = new PageInfo<>(orderDTOList);
+        return data;
+    }
+
+    @Override
+    @Transactional
+    public OrderDTO cancel(OrderDTO orderDTO) {
+        //判断订单状态
+        if (orderDTO.getOrderStatus() != OrderStatusEnum.NEW.getCode()) {
+            throw new SellException(ResultEnum.ORDER_STATUS_ERROR);
+        }
+        //修改订单状态
+        orderDTO.setOrderStatus(OrderStatusEnum.CANCEL.getCode());
+        OrderMaster orderMaster=new OrderMaster();
+        BeanUtils.copyProperties(orderDTO,orderMaster);
+        //saveOrUpdate(orderMaster,Wrappers.<OrderMaster>lambdaQuery().eq(OrderMaster::getOrderStatus,orderMaster.getOrderStatus()));
+        this.lambdaUpdate().set(OrderMaster::getOrderStatus,OrderStatusEnum.CANCEL.getCode())
+                .eq(OrderMaster::getOrderId,orderDTO.getOrderId()).update();
+
+        //返回库存
+        List<OrderDetail> orderDetailList=orderDTO.getOrderDetailList();
+        if (orderDetailList.isEmpty()) {
+            throw new SellException(ResultEnum.ORDER_DETAIL_EMPTY);
+        }
+        List<CartDTO> cartDTOList = new ArrayList<>();
+        for (OrderDetail orderDetail : orderDetailList) {
+            CartDTO cartDTO = new CartDTO(orderDetail.getProductId(),orderDetail.getProductQuantity());
+            cartDTOList.add(cartDTO);
+        }
+        productInfoService.increaseStock(cartDTOList);
+        //若支付，需要退钱
+
+        return orderDTO;
+    }
+
+    @Override
+    public OrderDTO finish(OrderDTO orderDTO) {
+        return null;
+    }
+
+    @Override
+    public OrderDTO paid(OrderDTO orderDTO) {
+        return null;
+    }
+
+    @Override
+    public PageInfo<OrderDTO> findList(int start, int size) {
+        return null;
     }
 }

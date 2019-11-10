@@ -1,10 +1,12 @@
 package edu.gyc.hisell.service.impl;
 
-import edu.gyc.hisell.model.OrderDetail;
-import edu.gyc.hisell.dao.OrderDetailDao;
-import edu.gyc.hisell.service.OrderDetailService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import edu.gyc.hisell.dao.OrderDetailDao;
+import edu.gyc.hisell.model.OrderDetail;
+import edu.gyc.hisell.service.OrderDetailService;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * <p>
@@ -16,5 +18,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class OrderDetailServiceImpl extends ServiceImpl<OrderDetailDao, OrderDetail> implements OrderDetailService {
-
+   public List<OrderDetail> findOrderDetailsByOrderId(String orderId){
+        return this.lambdaQuery().eq(OrderDetail::getOrderId,orderId).list();
+    }
 }

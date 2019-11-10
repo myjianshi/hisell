@@ -52,14 +52,9 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoDao, ProductI
         for (CartDTO cartDTO : cartDTOList) {
             ProductInfo productInfo = findOne(cartDTO.getProductId());
             Integer n=productInfo.getProductStock()+cartDTO.getProductQuantity();
-
-
-
             productInfo.setProductStock(n);
-
-           // saveOrUpdate(productInfo, Wrappers.<ProductInfo>lambdaQuery().eq(ProductInfo::getProductId, productInfo.getProductId()));
-
-            boolean result  = lambdaUpdate().set(ProductInfo::getProductStock,n).eq(ProductInfo::getProductId,productInfo.getProductId())
+            boolean result  = lambdaUpdate().set(ProductInfo::getProductStock,n)
+                    .eq(ProductInfo::getProductId,productInfo.getProductId())
                          .update();
             log.info("increase stock : "+result);
 
@@ -84,12 +79,31 @@ public class ProductInfoServiceImpl extends ServiceImpl<ProductInfoDao, ProductI
     }
 
     @Override
-    public ProductInfo onSale(String productId) {
-        return null;
+    public void onSale(String productId) {
+        ProductInfo productInfo = findOne(productId);
+        if (productInfo == null) {
+            throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+        }
+        if (productInfo.getProductStatus() == ProductStatusEnum.UP.getCode()) {
+            throw new SellException(ResultEnum.PRODUCT_STATUS_ERROR);
+        }
+        this.lambdaUpdate().set(ProductInfo::getProductStatus,ProductStatusEnum.UP.getCode())
+                .eq(ProductInfo::getProductId,productId).update();
+
+
     }
 
     @Override
-    public ProductInfo offSale(String productId) {
-        return null;
+    public void offSale(String productId) {
+        ProductInfo productInfo = findOne(productId);
+        if (productInfo == null) {
+            throw new SellException(ResultEnum.PRODUCT_NOT_EXIST);
+        }
+
+        if (productInfo.getProductStatus() == ProductStatusEnum.DOWN.getCode()) {
+            throw new SellException(ResultEnum.PRODUCT_STATUS_ERROR);
+        }
+        this.lambdaUpdate().set(ProductInfo::getProductStatus,ProductStatusEnum.DOWN.getCode())
+                .eq(ProductInfo::getProductId,productId).update();
     }
 }

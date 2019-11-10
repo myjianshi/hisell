@@ -29,8 +29,8 @@ public interface ProductInfoService extends IService<ProductInfo> {
     void decreaseStock(List<CartDTO> cartDTOList);
 
     //上架
-    ProductInfo onSale(String productId);
+    void onSale(String productId);
 
     //下架
-    ProductInfo offSale(String productId);
+    void offSale(String productId);
 }

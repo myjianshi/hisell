@@ -52,6 +52,26 @@ private ProductInfoService productInfoService;
     }
 
     @Test
+    void getOneDetail() {
+       log.info("查询单个订单 {}",orderMasterService.findOne("1573227951619768099"));
+       // log.info("Order {}",orderMasterService.findOne("1111"));
+    }
+
+    @Test
+    void findOrderList() {
+        log.info("查询订单 {}",orderMasterService.findList("110119",2,2));
+        // log.info("Order {}",orderMasterService.findOne("1111"));
+    }
+
+    @Test
+    void cancelOrder() {
+
+       OrderDTO orderDTO=   orderMasterService.findOne("1573227951619768099");
+
+       log.info("Order status: order {}, status {}",orderDTO.getOrderId(),orderMasterService.cancel(orderDTO).getOrderStatus());
+    }
+
+    @Test
     void addStock() {
         List<CartDTO> cartDTOList = new ArrayList<>();
         CartDTO cartDTO1 = new CartDTO("1", 2);

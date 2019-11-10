@@ -1,7 +1,9 @@
 package edu.gyc.hisell.service;
 
-import edu.gyc.hisell.model.OrderDetail;
 import com.baomidou.mybatisplus.extension.service.IService;
+import edu.gyc.hisell.model.OrderDetail;
+
+import java.util.List;
 
 /**
  * <p>
@@ -12,5 +14,5 @@ import com.baomidou.mybatisplus.extension.service.IService;
  * @since 2019-11-06
  */
 public interface OrderDetailService extends IService<OrderDetail> {
-
+    List<OrderDetail> findOrderDetailsByOrderId(String orderId);
 }
